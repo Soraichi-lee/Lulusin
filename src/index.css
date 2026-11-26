@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Poppins:Bold';
+  src: url('https://static.figma.com/font/Poppins-Bold_6') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Poppins:Regular';
+  src: url('https://static.figma.com/font/Poppins-Regular_6') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #fdf4e3;
+    color: #1f1f1f;
+    font-family: 'Poppins:Regular', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button,
+  a,
+  select,
+  input[type='checkbox'],
+  input[type='radio'] {
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "description": "The app’s purpose and audience can’t be determined from the design link alone.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
