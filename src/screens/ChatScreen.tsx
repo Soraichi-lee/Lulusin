@@ -405,13 +405,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             {/* Message Input Bar */}
             <form
               onSubmit={handleSubmit}
-              className="px-4 sm:px-5 py-3.5 border-t border-[#EBDDC2] flex items-center gap-3"
+              className="px-3 sm:px-5 py-3 sm:py-3.5 border-t border-[#EBDDC2] flex items-center gap-2 sm:gap-3"
             >
               <button
                 type="button"
                 onClick={() => onOpenAturCod(attachedProduct)}
                 title="Buat Ajakan COD"
-                className="size-[38px] rounded-full bg-[#F2E6CC] hover:bg-[#ead8b5] flex items-center justify-center shrink-0 transition-colors"
+                className="size-[36px] sm:size-[38px] rounded-full bg-[#F2E6CC] hover:bg-[#ead8b5] flex items-center justify-center shrink-0 transition-colors"
               >
                 <img
                   src={`${assetPathPrefix}/6ff1c.svg`}
@@ -442,7 +442,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 }}
                 title="Ambil foto dengan kamera"
                 aria-label="Ambil foto dengan kamera"
-                className="size-[38px] rounded-full bg-[#F2E6CC] hover:bg-[#ead8b5] flex items-center justify-center shrink-0 transition-colors"
+                className="size-[36px] sm:size-[38px] rounded-full bg-[#F2E6CC] hover:bg-[#ead8b5] flex items-center justify-center shrink-0 transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#17683A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -462,7 +462,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 onClick={() => imageInputRef.current?.click()}
                 title="Lampirkan foto dari galeri"
                 aria-label="Lampirkan foto"
-                className="size-[38px] rounded-full bg-[#F2E6CC] hover:bg-[#ead8b5] disabled:opacity-60 flex items-center justify-center shrink-0 transition-colors"
+                className="size-[36px] sm:size-[38px] rounded-full bg-[#F2E6CC] hover:bg-[#ead8b5] disabled:opacity-60 flex items-center justify-center shrink-0 transition-colors"
               >
                 <svg
                   width="18"
@@ -486,13 +486,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Tulis pesan…"
-                className="flex-1 h-[44px] rounded-full bg-[#FDF4E3] border border-[#EBDDC2] focus:border-[#17683a] px-4 outline-none font-['Poppins:Regular'] text-[14px] text-[#1f1f1f] placeholder:text-[#a39c8f]"
+                className="flex-1 min-w-0 h-[44px] rounded-full bg-[#FDF4E3] border border-[#EBDDC2] focus:border-[#17683a] px-4 outline-none font-['Poppins:Regular'] text-[14px] text-[#1f1f1f] placeholder:text-[#a39c8f]"
               />
 
               <button
                 type="submit"
                 aria-label="Kirim pesan"
-                className="size-[44px] rounded-full bg-[#17683A] hover:bg-[#12542e] flex items-center justify-center shrink-0 transition-colors"
+                className="size-[42px] sm:size-[44px] rounded-full bg-[#17683A] hover:bg-[#12542e] flex items-center justify-center shrink-0 transition-colors"
               >
                 <img
                   src={`${assetPathPrefix}/8e3c2.svg`}
