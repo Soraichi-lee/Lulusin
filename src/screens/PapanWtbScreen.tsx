@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { assetPathPrefix, WtbRequest } from '../data/lulusinData'
 
 interface PapanWtbScreenProps {
+  /** Akun yang sedang masuk (mode backend). Kosong = profil contoh. */
+  currentUser?: { name: string; initials: string; facultyProdi: string }
   requests: WtbRequest[]
   onAddRequest: (req: WtbRequest) => void
   onOfferItem: (req: WtbRequest) => void
@@ -26,6 +28,7 @@ export const PapanWtbScreen: React.FC<PapanWtbScreenProps> = ({
   requests,
   onAddRequest,
   onOfferItem,
+  currentUser,
 }) => {
   const [activeCat, setActiveCat] =
     useState<(typeof CATEGORIES)[number]>('Semua')
@@ -46,10 +49,10 @@ export const PapanWtbScreen: React.FC<PapanWtbScreenProps> = ({
     if (!title.trim()) return
     onAddRequest({
       id: `wtb-${Date.now()}`,
-      authorName: 'Raka Aditya',
-      initials: 'RA',
+      authorName: currentUser?.name ?? 'Raka Aditya',
+      initials: currentUser?.initials ?? 'RA',
       avatarBg: '#2F5FD6',
-      facultyAndTime: 'FMIPA · baru saja',
+      facultyAndTime: `${currentUser?.facultyProdi || 'FMIPA'} · baru saja`,
       wantType,
       category,
       title: title.trim(),

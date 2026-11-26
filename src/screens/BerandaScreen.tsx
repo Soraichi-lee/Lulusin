@@ -8,6 +8,8 @@ import {
 import { ProductCard } from '../components/ProductCard'
 
 interface BerandaScreenProps {
+  /** Nama pengguna yang sedang masuk. Kosong = mode demo ("Raka"). */
+  userName?: string
   products: ProductItem[]
   ecoPoints: number
   wishlistIds: string[]
@@ -25,6 +27,7 @@ export const BerandaScreen: React.FC<BerandaScreenProps> = ({
   onToggleWishlist,
   onSelectProduct,
   onNavigate,
+  userName,
   onOpenSearchWithType,
   onShowToast,
 }) => {
@@ -90,7 +93,11 @@ export const BerandaScreen: React.FC<BerandaScreenProps> = ({
       {/* Greeting Header */}
       <div>
         <h1 className="font-['Poppins:Bold'] text-[24px] sm:text-[26px] text-[#1f1f1f] leading-tight">
-          Hai, Raka
+          {userName === undefined
+            ? 'Hai, Raka'
+            : userName.trim()
+              ? `Hai, ${userName.trim().split(/\s+/)[0]}`
+              : 'Hai!'}
         </h1>
         <div className="mt-1 flex items-center gap-1.5">
           <img
