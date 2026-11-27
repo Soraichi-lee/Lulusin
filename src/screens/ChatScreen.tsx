@@ -7,6 +7,7 @@ import {
 } from '../data/lulusinData'
 import { fileToCompressedDataUrl, validateImageFile } from '../lib/image'
 import { CameraCapture } from '../components/CameraCapture'
+import { EmptyState } from '../components/EmptyState'
 
 interface ChatScreenProps {
   threads: ChatThread[]
@@ -110,6 +111,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           </div>
 
           <div className="mt-4 space-y-1.5">
+            {threads.length === 0 && (
+              <div className="p-4">
+                <EmptyState
+                  icon="💬"
+                  title="Belum ada percakapan"
+                  body="Buka sebuah barang lalu tekan Chat untuk menghubungi penjualnya."
+                />
+              </div>
+            )}
             {filteredThreads.map((thread) => {
               const isSelected = thread.id === activeThread?.id
               const lastMsg = thread.messages[thread.messages.length - 1]
@@ -168,7 +178,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         </aside>
 
         {/* Right Active Conversation Card */}
-        {activeThread && (
+        {activeThread && attachedProduct && (
           <section
             className={`flex-1 rounded-[20px] bg-white border border-[#EBDDC2] shadow-[0_4px_18px_rgba(110,86,40,0.05)] flex-col overflow-hidden ${
               mobileShowDetail ? 'flex' : 'hidden lg:flex'
@@ -507,3 +517,4 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     </main>
   )
 }
+

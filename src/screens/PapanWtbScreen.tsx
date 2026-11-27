@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { EmptyState } from '../components/EmptyState'
 import { assetPathPrefix, WtbRequest } from '../data/lulusinData'
 
 interface PapanWtbScreenProps {
@@ -191,6 +192,13 @@ export const PapanWtbScreen: React.FC<PapanWtbScreenProps> = ({
 
       {/* Requests Grid */}
       <section className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+        {visible.length === 0 && (
+          <EmptyState
+            icon="📝"
+            title="Belum ada permintaan"
+            body="Cari barang yang belum ada? Posting permintaanmu di sini."
+          />
+        )}
         {visible.map((req) => (
           <article
             key={req.id}

@@ -5,6 +5,7 @@ import {
   ScreenId,
   TransactionType,
 } from '../data/lulusinData'
+import { EmptyState } from '../components/EmptyState'
 import { ProductCard } from '../components/ProductCard'
 
 interface BerandaScreenProps {
@@ -265,6 +266,15 @@ export const BerandaScreen: React.FC<BerandaScreenProps> = ({
         </div>
 
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
+          {sorotProducts.length === 0 && (
+            <div className="col-span-full">
+              <EmptyState
+                icon="⭐"
+                title="Belum ada barang yang disorot"
+                body="Barang yang disorot penjual akan tampil di sini."
+              />
+            </div>
+          )}
           {sorotProducts.map((item) => (
             <ProductCard
               key={item.id}
@@ -294,6 +304,16 @@ export const BerandaScreen: React.FC<BerandaScreenProps> = ({
         </div>
 
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
+          {latestProducts.length === 0 && (
+            <div className="col-span-full">
+              <EmptyState
+                title="Belum ada barang"
+                body="Jadilah yang pertama memasang barang di Lulusin."
+                actionLabel="Pasang Barang"
+                onAction={() => onNavigate('pasang-barang')}
+              />
+            </div>
+          )}
           {latestProducts.map((item) => (
             <ProductCard
               key={item.id}

@@ -32,6 +32,7 @@ import { UmkmKampusScreen } from './screens/UmkmKampusScreen'
 import { SorotBarangScreen } from './screens/SorotBarangScreen'
 import * as api from './lib/api'
 import { KtmStatusBanner } from './components/KtmStatusBanner'
+import { EmptyState } from './components/EmptyState'
 import { isBackendEnabled, supabase } from './lib/supabase'
 
 const AUTO_REPLIES = [
@@ -54,7 +55,12 @@ const nowTime = () => {
 // ---- Penyimpanan chat di browser (sementara, sebelum ada backend) ----
 const CHATS_STORAGE_KEY = 'lulusin:chats:v1'
 
+// Data contoh bawaan desain hanya dipakai di mode demo (tanpa backend).
+// Dengan backend aktif, aplikasi mulai bersih dan hanya menampilkan data sungguhan.
+const SEED_DEMO = !isBackendEnabled
+
 const loadChats = (): ChatThread[] => {
+  if (!SEED_DEMO) return []
   try {
     const raw = window.localStorage.getItem(CHATS_STORAGE_KEY)
     if (!raw) return INITIAL_CHATS
@@ -87,10 +93,10 @@ const saveChats = (chats: ChatThread[]) => {
 export default function App() {
   const [screen, setScreen] = useState<ScreenId>('masuk')
   const [history, setHistory] = useState<ScreenId[]>([])
-  const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS)
+  const [products, setProducts] = useState<ProductItem[]>(SEED_DEMO ? INITIAL_PRODUCTS : [])
   const [wishlist, setWishlist] = useState<string[]>([])
   const [chats, setChats] = useState<ChatThread[]>(loadChats)
-  const [activeThreadId, setActiveThreadId] = useState('thread-nadia')
+  const [activeThreadId, setActiveThreadId] = useState(SEED_DEMO ? 'thread-nadia' : '')
 
   // ---- Status backend (Supabase) ----
   const [authReady, setAuthReady] = useState(!isBackendEnabled)
@@ -104,17 +110,21 @@ export default function App() {
   activeThreadIdRef.current = activeThreadId
   screenRef.current = screen
   const [transactions, setTransactions] =
-    useState<TransactionRecord[]>(INITIAL_TRANSACTIONS)
-  const [wtb, setWtb] = useState<WtbRequest[]>(INITIAL_WTB_REQUESTS)
-  const [ecoPoints, setEcoPoints] = useState(1250)
+    useState<TransactionRecord[]>(SEED_DEMO ? INITIAL_TRANSACTIONS : [])
+  const [wtb, setWtb] = useState<WtbRequest[]>(SEED_DEMO ? INITIAL_WTB_REQUESTS : [])
+  const [ecoPoints, setEcoPoints] = useState(SEED_DEMO ? 1250 : 0)
   const [pointHistory, setPointHistory] =
-    useState<PointHistoryEntry[]>(INITIAL_POINT_HISTORY)
+    useState<PointHistoryEntry[]>(SEED_DEMO ? INITIAL_POINT_HISTORY : [])
   const [selectedProductId, setSelectedProductId] = useState(
-    'kalkulator-casio-991',
+    SEED_DEMO ? 'kalkulator-casio-991' : '',
   )
-  const [codProductId, setCodProductId] = useState('kalkulator-casio-991')
-  const [sorotProductId, setSorotProductId] = useState('sepeda-lipat')
-  const [searchQuery, setSearchQuery] = useState('kalkulator')
+  const [codProductId, setCodProductId] = useState(
+    SEED_DEMO ? 'kalkulator-casio-991' : '',
+  )
+  const [sorotProductId, setSorotProductId] = useState(
+    SEED_DEMO ? 'sepeda-lipat' : '',
+  )
+  const [searchQuery, setSearchQuery] = useState(SEED_DEMO ? 'kalkulator' : '')
   const [searchType, setSearchType] = useState<TransactionType | 'Semua'>(
     'Semua',
   )
@@ -148,7 +158,7 @@ export default function App() {
     window.scrollTo({ top: 0 })
   }, [screen, selectedProductId])
 
-  const findProduct = (id: string) =>
+  const findProduct = (id: string): ProductItem | undefined =>
     products.find((p) => p.id === id) ?? products[0]
 
   const addPoints = (delta: number, title: string) => {
@@ -208,7 +218,7 @@ export default function App() {
 
   useEffect(() => {
     // Percakapan asli (id 'c-...') disimpan server, bukan di browser.
-    saveChats(chats.filter((t) => !t.id.startsWith('c-')))
+    if (SEED_DEMO) saveChats(chats.filter((t) => !t.id.startsWith('c-')))
   }, [chats])
 
   const sendMessage = (threadId: string, text: string, imageUrl?: string) => {
@@ -453,7 +463,7 @@ export default function App() {
     if (!isBackendEnabled) return
     if (!userId) {
       setProfile(null)
-      setProducts(INITIAL_PRODUCTS)
+      setProducts(SEED_DEMO ? INITIAL_PRODUCTS : [])
       setChats((cs) => cs.filter((t) => !t.id.startsWith('c-')))
       return
     }
@@ -468,7 +478,7 @@ export default function App() {
       if (!alive) return
       setProfile(prof)
       setKtmNim(nim)
-      setProducts([...remote, ...INITIAL_PRODUCTS])
+      setProducts(SEED_DEMO ? [...remote, ...INITIAL_PRODUCTS] : remote)
       applyThreads(threads)
       // Dari halaman masuk: arahkan sesuai status KTM.
       setScreen((cur) => {
@@ -637,7 +647,8 @@ export default function App() {
       setActiveThreadId(thread.id)
       navigate('chat')
     } else {
-      openChatWithSeller(findProduct(t.productId))
+      const related = findProduct(t.productId)
+      if (related) openChatWithSeller(related)
     }
   }
 
@@ -673,15 +684,52 @@ export default function App() {
   const unread = chats.reduce((n, t) => n + t.unreadCount, 0)
   const isAuth = screen === 'masuk' || screen === 'daftar' || screen === 'verifikasi-ktm'
 
-  const sorotProduct = findProduct(sorotProductId)
   const myProducts = products.filter(
-    (p) => p.seller.id === 'raka' || (userId !== null && p.seller.id === userId) || ['sepeda-lipat', 'laptop-stand', 'lampu-belajar-led'].includes(p.id),
+    (p) =>
+      (userId !== null && p.seller.id === userId) ||
+      (SEED_DEMO &&
+        (p.seller.id === 'raka' ||
+          ['sepeda-lipat', 'laptop-stand', 'lampu-belajar-led'].includes(p.id))),
   )
+  const sorotProduct = SEED_DEMO
+    ? findProduct(sorotProductId)
+    : (myProducts.find((p) => p.id === sorotProductId) ?? myProducts[0])
   const comparison =
-    products.find((p) => p.id === 'laptop-stand' && p.id !== sorotProduct.id) ??
-    products.find((p) => p.id !== sorotProduct.id)!
+    products.find((p) => p.id === 'laptop-stand' && p.id !== sorotProduct?.id) ??
+    products.find((p) => p.id !== sorotProduct?.id) ??
+    sorotProduct
 
   const renderScreen = () => {
+    // Halaman yang butuh barang: bila belum ada barang, tampilkan pesan, bukan error.
+    const backToBeranda = () => navigate('beranda')
+    if (
+      (screen === 'detail-barang' && !findProduct(selectedProductId)) ||
+      (screen === 'atur-cod' && !findProduct(codProductId))
+    ) {
+      return (
+        <main className="max-w-[640px] mx-auto px-4 pt-10 pb-24">
+          <EmptyState
+            title="Barang tidak ditemukan"
+            body="Barang ini mungkin sudah dihapus atau belum tersedia."
+            actionLabel="Kembali ke Beranda"
+            onAction={backToBeranda}
+          />
+        </main>
+      )
+    }
+    if (screen === 'sorot-barang' && !sorotProduct) {
+      return (
+        <main className="max-w-[640px] mx-auto px-4 pt-10 pb-24">
+          <EmptyState
+            icon="⭐"
+            title="Belum ada barang untuk disorot"
+            body="Pasang barangmu dulu, lalu kamu bisa menyorotnya agar tampil di atas."
+            actionLabel="Pasang Barang"
+            onAction={() => navigate('pasang-barang')}
+          />
+        </main>
+      )
+    }
     switch (screen) {
       case 'beranda':
         return (
@@ -954,3 +1002,4 @@ export default function App() {
     </div>
   )
 }
+
