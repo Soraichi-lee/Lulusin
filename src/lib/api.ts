@@ -240,12 +240,70 @@ export async function fetchProducts(): Promise<ProductItem[]> {
   try {
     const { data, error } = await client()
       .from('products')
-      .select('data')
+      .select('data, highlighted_until')
       .order('created_at', { ascending: false })
     if (error || !data) return []
-    return data.map((r) => r.data as ProductItem)
+    // Status "disorot" ditentukan server lewat masa berakhir, bukan label lokal.
+    return data.map((r) => {
+      const until = r.highlighted_until
+        ? new Date(r.highlighted_until as string).getTime()
+        : 0
+      return { ...(r.data as ProductItem), highlighted: until > Date.now() }
+    })
   } catch {
     return []
+  }
+}
+
+// -------------------------------------------------------- pembayaran sorot
+export async function createHighlightOrder(
+  productId: string,
+  days: number,
+): Promise<{ token?: string; orderId?: string; error?: string }> {
+  try {
+    const { data, error } = await client().functions.invoke('create-highlight-order', {
+      body: { productId, days },
+    })
+    if (error) {
+      // Ambil pesan galat yang dikirim fungsi server, bila ada.
+      let message = error.message
+      const ctx = (error as { context?: Response }).context
+      if (ctx && typeof ctx.json === 'function') {
+        try {
+          const body = await ctx.json()
+          if (body?.error) message = String(body.error)
+        } catch {
+          /* pakai pesan bawaan */
+        }
+      }
+      return { error: friendly(message) }
+    }
+    if (!data?.token || !data?.orderId) return { error: 'Respons pembayaran tidak valid.' }
+    return { token: data.token as string, orderId: data.orderId as string }
+  } catch (e) {
+    return { error: errorOf(e) }
+  }
+}
+
+export type OrderStatus = 'pending' | 'paid' | 'failed' | 'expired'
+
+/** Menunggu webhook menandai pesanan lunas (polling tiap 3 detik). */
+export async function waitForOrderStatus(
+  orderId: string,
+  timeoutMs: number,
+): Promise<OrderStatus> {
+  const sb = client()
+  const end = Date.now() + timeoutMs
+  let status: OrderStatus = 'pending'
+  for (;;) {
+    const { data } = await sb
+      .from('highlight_orders')
+      .select('status')
+      .eq('id', orderId)
+      .maybeSingle()
+    status = ((data?.status as OrderStatus | undefined) ?? 'pending')
+    if (status !== 'pending' || Date.now() >= end) return status
+    await new Promise((r) => setTimeout(r, 3000))
   }
 }
 

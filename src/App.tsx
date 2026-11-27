@@ -33,6 +33,7 @@ import { SorotBarangScreen } from './screens/SorotBarangScreen'
 import * as api from './lib/api'
 import { KtmStatusBanner } from './components/KtmStatusBanner'
 import { EmptyState } from './components/EmptyState'
+import { payWithSnap } from './lib/midtrans'
 import { isBackendEnabled, supabase } from './lib/supabase'
 
 const AUTO_REPLIES = [
@@ -509,6 +510,12 @@ export default function App() {
     api.fetchProfile(userId).then((p) => {
       if (alive && p) setProfile(p)
     })
+    // Muat ulang barang di Beranda agar sorot yang baru lunas langsung tampil.
+    if (screen === 'beranda') {
+      api.fetchProducts().then((list) => {
+        if (alive && list.length > 0) setProducts(list)
+      })
+    }
     return () => {
       alive = false
     }
@@ -665,12 +672,56 @@ export default function App() {
     navigate('chat')
   }
 
-  const paySorot: Parameters<typeof SorotBarangScreen>[0]['onPay'] = ({
+  const paySorot: Parameters<typeof SorotBarangScreen>[0]['onPay'] = async ({
     product,
     days,
     method,
     points,
   }) => {
+    if (isBackendEnabled) {
+      // Pembayaran sungguhan lewat Midtrans; harga dihitung ulang di server.
+      if (!profile || profile.ktmStatus !== 'verified') {
+        showToast('Akunmu harus terverifikasi KTM dulu untuk menyorot barang.')
+        return
+      }
+      const order = await api.createHighlightOrder(product.id, days)
+      if (order.error || !order.token || !order.orderId) {
+        showToast(order.error ?? 'Gagal membuat pembayaran.')
+        return
+      }
+      let outcome: 'success' | 'pending' | 'closed'
+      try {
+        outcome = await payWithSnap(order.token)
+      } catch (e) {
+        showToast(e instanceof Error ? e.message : 'Pembayaran gagal.')
+        return
+      }
+      if (outcome === 'closed') {
+        // Jendela ditutup: cek sekali, siapa tahu pembayaran sempat lunas.
+        const quick = await api.waitForOrderStatus(order.orderId, 0)
+        if (quick !== 'paid') {
+          showToast('Pembayaran dibatalkan. Kamu bisa mencobanya lagi kapan saja.')
+          return
+        }
+      }
+      showToast('Memeriksa pembayaranmu…')
+      const status = await api.waitForOrderStatus(
+        order.orderId,
+        outcome === 'success' ? 45000 : 0,
+      )
+      if (status === 'paid') {
+        setProducts(await api.fetchProducts())
+        showToast(`"${product.title}" disorot selama ${days} hari!`)
+        navigate('beranda')
+      } else if (status === 'pending') {
+        showToast('Menunggu pembayaran. Sorot aktif otomatis setelah pembayaranmu lunas.')
+        navigate('beranda')
+      } else {
+        showToast('Pembayaran tidak berhasil. Silakan coba lagi.')
+      }
+      return
+    }
+
     if (method === 'points') addPoints(-points, `Sorot ${product.title}`)
     setProducts((ps) => {
       const target = ps.find((p) => p.id === product.id)
@@ -876,6 +927,7 @@ export default function App() {
             myProducts={myProducts}
             comparisonProduct={comparison}
             ecoPoints={ecoPoints}
+            pointsEnabled={!isBackendEnabled}
             onChangeProduct={setSorotProductId}
             onBack={goBack}
             onPay={paySorot}
@@ -1002,4 +1054,3 @@ export default function App() {
     </div>
   )
 }
-

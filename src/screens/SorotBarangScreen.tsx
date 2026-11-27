@@ -14,13 +14,15 @@ interface SorotBarangScreenProps {
   ecoPoints: number
   onChangeProduct: (id: string) => void
   onBack: () => void
+  /** Opsi bayar Eco-Points (hanya mode demo; di backend saldo poin belum di server). */
+  pointsEnabled?: boolean
   onPay: (payload: {
     product: ProductItem
     days: number
     method: 'qris' | 'points'
     price: number
     points: number
-  }) => void
+  }) => void | Promise<void>
 }
 
 const PACKAGES = [
@@ -34,6 +36,7 @@ export const SorotBarangScreen: React.FC<SorotBarangScreenProps> = ({
   myProducts,
   comparisonProduct,
   ecoPoints,
+  pointsEnabled = true,
   onChangeProduct,
   onBack,
   onPay,
@@ -41,6 +44,7 @@ export const SorotBarangScreen: React.FC<SorotBarangScreenProps> = ({
   const [pkgIdx, setPkgIdx] = useState(1)
   const [method, setMethod] = useState<'qris' | 'points'>('qris')
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [paying, setPaying] = useState(false)
   const pkg = PACKAGES[pkgIdx]
   const rp = (n: number) => `Rp${n.toLocaleString('id-ID')}`
   const notEnough = method === 'points' && ecoPoints < pkg.points
@@ -190,7 +194,9 @@ export const SorotBarangScreen: React.FC<SorotBarangScreenProps> = ({
             {([
               { id: 'qris', label: 'Transfer / QRIS' },
               { id: 'points', label: `Eco-Points (${pkg.points} poin)` },
-            ] as const).map((m) => {
+            ] as const)
+              .filter((m) => m.id === 'qris' || pointsEnabled)
+              .map((m) => {
               const active = method === m.id
               return (
                 <button
@@ -253,15 +259,28 @@ export const SorotBarangScreen: React.FC<SorotBarangScreenProps> = ({
 
           <button
             type="button"
-            disabled={notEnough}
-            onClick={() =>
-              onPay({ product, days: pkg.days, method, price: pkg.price, points: pkg.points })
-            }
+            disabled={notEnough || paying}
+            onClick={async () => {
+              setPaying(true)
+              try {
+                await onPay({
+                  product,
+                  days: pkg.days,
+                  method,
+                  price: pkg.price,
+                  points: pkg.points,
+                })
+              } finally {
+                setPaying(false)
+              }
+            }}
             className="mt-5 w-full h-[54px] rounded-[14px] bg-[#F5A314] hover:bg-[#e5960d] disabled:bg-[#EEEAE3] disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <img src={`${assetPathPrefix}/b28bc.svg`} alt="" className="block" />
             <span className="font-['Poppins:Bold'] text-[15px] text-[#1f1f1f]">
-              Sorot Sekarang · {method === 'points' ? `${pkg.points} poin` : rp(pkg.price)}
+              {paying
+                ? 'Memproses…'
+                : `Sorot Sekarang · ${method === 'points' ? `${pkg.points} poin` : rp(pkg.price)}`}
             </span>
           </button>
         </section>
