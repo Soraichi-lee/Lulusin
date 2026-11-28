@@ -4,6 +4,18 @@ import { fileToCompressedDataUrl, validateImageFile } from '../lib/image'
 import { CameraCapture } from '../components/CameraCapture'
 import type { KtmStatus } from '../lib/api'
 
+// Daftar fakultas pada form daftar. Nilai yang disimpan hanya singkatannya (mis. "FMIPA").
+const FACULTIES: { value: string; label: string }[] = [
+  { value: 'FMIPA', label: 'FMIPA · Matematika & IPA' },
+  { value: 'FT', label: 'FT · Teknik' },
+  { value: 'FEB', label: 'FEB · Ekonomika & Bisnis' },
+  { value: 'FIK', label: 'FIK · Ilmu Keolahragaan' },
+  { value: 'FBS', label: 'FBS · Bahasa & Seni' },
+  { value: 'FH', label: 'FH · Hukum' },
+  { value: 'FISIP', label: 'FISIP · Ilmu Sosial & Politik' },
+  { value: 'FK', label: 'FK · Kedokteran' },
+]
+
 interface AuthScreensProps {
   mode: 'masuk' | 'daftar' | 'verifikasi-ktm'
   onNavigate: (screen: ScreenId) => void
@@ -44,7 +56,7 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
   const [resend, setResend] = useState(false)
   const [fullName, setFullName] = useState(demo ? 'Raka Aditya' : '')
   const [nim, setNim] = useState(demo ? '2504140123' : '')
-  const [facultyProdi, setFacultyProdi] = useState('FMIPA · Sistem Informasi')
+  const [facultyProdi, setFacultyProdi] = useState('FMIPA')
   const [agreedTerms, setAgreedTerms] = useState(true)
   // Foto KTM hanya disimpan di memori halaman (tidak ditulis ke localStorage)
   // karena berisi data pribadi. Pengiriman ke server aman menyusul bersama backend.
@@ -152,9 +164,6 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
   // 2 = unggah foto, 3 = menunggu ditinjau, 4 = terverifikasi (semua selesai)
   const ktmStep: 2 | 3 | 4 = showKtmForm ? 2 : ktmStatus === 'verified' ? 4 : 3
 
-  const prodiOnly = facultyProdi.includes('·')
-    ? facultyProdi.split('·')[1].trim()
-    : facultyProdi
   const fakultasOnly = facultyProdi.includes('·')
     ? facultyProdi.split('·')[0].trim()
     : 'FMIPA'
@@ -464,30 +473,18 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
                   </div>
                   <div>
                     <label className="block font-['Poppins:Bold'] text-[13px] text-[#1f1f1f] mb-1.5">
-                      Fakultas &amp; prodi
+                      Fakultas
                     </label>
                     <select
                       value={facultyProdi}
                       onChange={(e) => setFacultyProdi(e.target.value)}
                       className="w-full h-[48px] rounded-[12px] border border-[#EBDDC2] bg-white px-3 outline-none focus:border-[#17683a] font-['Poppins:Regular'] text-[12.5px] text-[#1f1f1f]"
                     >
-                      <option value="FMIPA · Sistem Informasi">
-                        FMIPA · Sistem Informasi
-                      </option>
-                      <option value="FMIPA · Pend. Matematika">
-                        FMIPA · Pend. Matematika
-                      </option>
-                      <option value="FT · Teknik Elektro">
-                        FT · Teknik Elektro
-                      </option>
-                      <option value="FEB · Manajemen">FEB · Manajemen</option>
-                      <option value="FIK · Ilmu Keolahragaan">
-                        FIK · Ilmu Keolahragaan
-                      </option>
-                      <option value="FBS · Desain Komunikasi Visual">
-                        FBS · Desain Komunikasi Visual
-                      </option>
-                      <option value="FH · Ilmu Hukum">FH · Ilmu Hukum</option>
+                      {FACULTIES.map((f) => (
+                        <option key={f.value} value={f.value}>
+                          {f.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -791,13 +788,6 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
                     </span>
 
                     <span className="font-['Poppins:Regular'] text-[9.5px] text-[#cfe8d6]">
-                      Prodi
-                    </span>
-                    <span className="font-['Poppins:Bold'] text-[11.5px] text-white truncate">
-                      {prodiOnly}
-                    </span>
-
-                    <span className="font-['Poppins:Regular'] text-[9.5px] text-[#cfe8d6]">
                       Fakultas
                     </span>
                     <span className="font-['Poppins:Bold'] text-[11.5px] text-white truncate">
@@ -949,10 +939,10 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
                   )}
 
                   <span className="font-['Poppins:Regular'] text-[#6e6a63]">
-                    Prodi
+                    Fakultas
                   </span>
                   <span className="font-['Poppins:Bold'] text-[#1f1f1f]">
-                    {prodiOnly}
+                    {fakultasOnly}
                   </span>
                 </div>
               </div>

@@ -60,6 +60,9 @@ const initialsOf = (name: string): string =>
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('') || '?'
 
+/** Akun lama menyimpan "FMIPA · Prodi"; tampilkan hanya fakultasnya. */
+const facultyOnly = (value: string): string => value.split('·')[0].trim()
+
 const AVATAR_COLORS = ['#2F5FD6', '#17683A', '#D23A70', '#6E45D3', '#B26A00', '#0F8A8A']
 const avatarColorFor = (id: string): string => {
   let h = 0
@@ -137,7 +140,7 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
     return {
       id: data.id,
       fullName: data.full_name,
-      facultyProdi: data.faculty_prodi,
+      facultyProdi: facultyOnly(data.faculty_prodi as string),
       ktmStatus: data.ktm_status as KtmStatus,
       isAdmin: data.is_admin,
     }
@@ -375,7 +378,7 @@ export async function fetchThreads(me: string): Promise<ChatThread[]> {
       profileById.set(p.id as string, {
         id: p.id as string,
         fullName: p.full_name as string,
-        facultyProdi: p.faculty_prodi as string,
+        facultyProdi: facultyOnly(p.faculty_prodi as string),
         ktmStatus: p.ktm_status as KtmStatus,
         isAdmin: p.is_admin as boolean,
       })
